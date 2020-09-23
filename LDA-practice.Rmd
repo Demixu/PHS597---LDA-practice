@@ -1,0 +1,57 @@
+---
+title: "PHS597- LDA Practice"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+## Compare the result of multivariate regression and single multiple regression
+
+```{r}
+###simulate three variables
+#For each class, there are three covariates
+Sigma.matrix <- diag(c(8,2,6),3,3)
+Sigma.matrix[1,2]=1.5
+Sigma.matrix[2,1]=1.5#X1 and x2 are correlated 
+X1 =MASS::mvrnorm(n=20, c(2,1,1), Sigma.matrix)%>%as.data.frame()
+X2 =MASS::mvrnorm(n=20, c(5,2,8), Sigma.matrix)%>%as.data.frame()
+X3 =MASS::mvrnorm(n=20, c(-2,-2,-1), Sigma.matrix)%>%as.data.frame()
+X=rbind(X1,X2,X3)%>%as.matrix()
+##construct Y
+Y = matrix(0,60,3)%>%as.data.frame()
+Y[1:20,1]=1
+Y[21:40,2]=1
+Y[41:60,3]=1
+colnames(Y)=c("A","B","C")
+Y = as.matrix(Y)
+##Multivariate regression
+lm(Y~X)
+##Multiple regression
+lm(Y[,1]~X)
+lm(Y[,2]~X)
+lm(Y[,3]~X)
+```
+
+```{r}
+#Multivariate regression
+lm(Y~X)
+#Multiple regression on category A
+```
+
+
+##write the LDA boundary for three-cluster problem
+
+```{r}
+##write three clusters with two dimension which is convenient for visualization
+Sigma.matrix <- diag(c(8,2,6),3,3)
+Sigma.matrix[1,2]=1.5
+Sigma.matrix[2,1]=1.5#X1 and x2 are correlated 
+X1 =MASS::mvrnorm(n=20, c(2,1,1), Sigma.matrix)%>%as.data.frame()
+X2 =MASS::mvrnorm(n=20, c(5,2,8), Sigma.matrix)%>%as.data.frame()
+X3 =MASS::mvrnorm(n=20, c(-2,-2,-1), Sigma.matrix)%>%as.data.frame()
+
+```
+
+
