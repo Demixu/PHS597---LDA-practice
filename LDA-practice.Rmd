@@ -1,6 +1,13 @@
 ---
-title: "PHS597- LDA Practice"
-output: html_document
+title: "LDA Practice1"
+author: "Jingyu Xu"
+date: "09/23/2020"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -40,18 +47,68 @@ lm(Y~X)
 #Multiple regression on category A
 ```
 
+From the result, we can see the subset coefficient in multivariate regression is actually the same as corresponding multiple regression. In fact, when we look at the least square coefficient matrix, the only part different is the Y. Regarding Y as a partitioned matrix composed by Y1-Y3, we can easily get the consistency between the multivariate regression and multiple regression.
 
-##write the LDA boundary for three-cluster problem
+
+## Plot the linear boundary for three-cluster problem and see why it cannot work
 
 ```{r}
 ##write three clusters with two dimension which is convenient for visualization
-Sigma.matrix <- diag(c(8,2,6),3,3)
-Sigma.matrix[1,2]=1.5
-Sigma.matrix[2,1]=1.5#X1 and x2 are correlated 
-X1 =MASS::mvrnorm(n=20, c(2,1,1), Sigma.matrix)%>%as.data.frame()
-X2 =MASS::mvrnorm(n=20, c(5,2,8), Sigma.matrix)%>%as.data.frame()
-X3 =MASS::mvrnorm(n=20, c(-2,-2,-1), Sigma.matrix)%>%as.data.frame()
+Sigma.matrix <- diag(c(1,1),2,2)
+Sigma.matrix[1,2]=0.5
+Sigma.matrix[2,1]=0.5#X1 and x2 are correlated 
+X1 =MASS::mvrnorm(n=20, c(2,2), Sigma.matrix)%>%as.data.frame()
+X2 =MASS::mvrnorm(n=20, c(4,5), Sigma.matrix)%>%as.data.frame()
+X3 =MASS::mvrnorm(n=20, c(-1,-1), Sigma.matrix)%>%as.data.frame()
+X = rbind(X1,X2,X3)
+X = cbind(rep(1,nrow(X)),X)%>%as.matrix()
+Y = matrix(0,60,3)
+Y[1:20,1]=1
+Y[21:40,2]=1
+Y[41:60,3]=1
+
+##coefficient matrix
+coef = solve(t(X)%*%X)%*%t(X)%*%Y
+##get the slope(s) and intercept(i)
+boundary = function(class1,class2,coef_mat){
+  i = class1
+  j = class2
+  l = coef[,i]-coef[,j]%>%as.numeric()
+  inter = -l[1]/l[3]
+  slope = -l[2]/l[3]
+  return(list(inter,slope))
+}
+
+inter_12 = boundary(1,2,coef)[[1]]
+inter_13 = boundary(1,3,coef)[[1]]
+inter_23 = boundary(2,3,coef)[[1]]
+slope_12 = boundary(1,2,coef)[[2]]
+slope_13 = boundary(1,3,coef)[[2]]
+slope_23 = boundary(2,3,coef)[[2]]
 
 ```
 
 
+
+
+```{r}
+X_mat = X[,-1]%>%as.data.frame()
+colnames(X_mat)=c("x1","x2")
+X_mat=cbind(X_mat,class=c(rep("class1",20),rep("class2",20),rep("class3",20)))%>%as.data.frame()
+ggplot(X_mat, aes(x=x1, y=x2)) + geom_point(aes(color=class)) + geom_abline(
+  slope=slope_12,
+  intercept=inter_12,
+  color = "red"
+) + geom_abline(
+  slope=slope_13,
+  intercept=inter_13,
+  color = "yellow"
+)+ geom_abline(
+  slope=slope_23,
+  intercept=inter_23,
+  color = "green"
+)
+
+```
+
+In this case, we can see the linear regression boundary cannot divide the three class well.
